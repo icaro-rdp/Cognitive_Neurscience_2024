@@ -8,12 +8,18 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 function App() {
   const [imageIdx, setImageIdx] = useState(1);
   const [userID, setUserID] = useState<number>(0);
-  const [state, setState] = useState<string>("registering");
+  const [state, setState] = useState<"registering" | "looking" | "rating">(
+    "registering"
+  );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "ArrowRight") {
-        setImageIdx((prevIdx) => prevIdx + 1);
+        setImageIdx(imageIdx + 1);
+        console.log(imageIdx);
+        if (imageIdx % 2 === 0) {
+          setState("rating");
+        }
       }
     };
 
@@ -23,7 +29,7 @@ function App() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [imageIdx]);
 
   return (
     <div className="flex items-center justify-center h-screen bg-[rgb(217,217,217)]">
@@ -36,7 +42,7 @@ function App() {
             className="w-64 h-8 m-2 px-2 rounded border-0 border-gray-300 focus:outline-none focus:border-blue-500"
           />
           <button
-            onClick={() => setState("experiment")}
+            onClick={() => setState("looking")}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded"
           >
             Submit
@@ -46,7 +52,8 @@ function App() {
         <Experiment
           userID={userID}
           imageIdx={imageIdx}
-          setImageIdx={setImageIdx}
+          state={state}
+          setState={setState}
         />
       )}
     </div>
@@ -56,15 +63,17 @@ function App() {
 function Experiment({
   imageIdx,
   userID,
-  setImageIdx,
+  state,
+  setState,
 }: {
   userID: number;
   imageIdx: number;
-  setImageIdx: (idx: number) => void;
+  state: "registering" | "looking" | "rating";
+  setState: (state: "registering" | "looking" | "rating") => void;
 }) {
   return (
     <div className="flex items-center justify-center h-screen bg-[rgb(217,217,217)]">
-      {imageIdx % 3 !== 0 ? (
+      {state === "looking" ? (
         <img
           className="h-screen aspect-square"
           src={`./experiment/${imageIdx}.jpeg`}
@@ -74,8 +83,8 @@ function Experiment({
         <>
           <SAM
             userID={userID}
-            paintingID={Math.floor(imageIdx / 3)}
-            setImageIdx={setImageIdx}
+            paintingID={Math.floor((imageIdx + 1) / 3)}
+            setState={setState}
           />
         </>
       )}
@@ -85,14 +94,14 @@ function Experiment({
 interface SAMProps {
   userID: number;
   paintingID: number;
-  setImageIdx?: (idx: number) => void;
+  setState?: (state: "registering" | "looking" | "rating") => void;
 }
 
-function SAM({ userID, paintingID, setImageIdx }: SAMProps) {
+function SAM({ userID, paintingID, setState }: SAMProps) {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
 
   function insertData() {
-    setImageIdx && setImageIdx((prevIdx: number) => prevIdx + 1);
+    setState?.("looking");
     console.table({ userID, paintingID, selectedRating });
   }
 
