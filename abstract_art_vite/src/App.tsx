@@ -16,7 +16,6 @@ function App() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "ArrowRight") {
         setImageIdx(imageIdx + 1);
-        console.log(imageIdx);
         if (imageIdx % 2 === 0) {
           setState("rating");
         }
