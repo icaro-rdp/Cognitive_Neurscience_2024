@@ -1,15 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+
+const supabaseUrl = import.meta.env.VITE_SUPA_URL;
+const supabaseKey = import.meta.env.VITE_SUPA_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 function App() {
   const [imageIdx, setImageIdx] = useState(1);
-  const supabaseUrl = import.meta.env.VITE_SUPA_URL;
-  const supabaseKey = import.meta.env.VITE_SUPA_KEY;
-
-  const supabase = useCallback(
-    () => createClient(supabaseUrl, supabaseKey),
-    [supabaseUrl, supabaseKey]
-  );
+  const [userID, setUserID] = useState<number>(0);
+  const [state, setState] = useState<string>("registering");
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -24,32 +23,79 @@ function App() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []); // Empty dependency array means this effect runs once on mount and cleanup on unmount
-
-  async function insertData(
-    userID: number,
-    paintingID: number,
-    rating: number
-  ) {
-    console.log(userID, paintingID, rating);
-  }
+  }, []);
 
   return (
     <div className="flex items-center justify-center h-screen bg-[rgb(217,217,217)]">
-      {imageIdx % 3 != 0 ? (
+      {state === "registering" ? (
+        <>
+          <input
+            onChange={(e) => setUserID(parseInt(e.target.value))}
+            type="number"
+            placeholder="Enter your user ID"
+            className="w-64 h-8 m-2 px-2 rounded border-0 border-gray-300 focus:outline-none focus:border-blue-500"
+          />
+          <button
+            onClick={() => setState("experiment")}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded"
+          >
+            Submit
+          </button>
+        </>
+      ) : (
+        <Experiment
+          userID={userID}
+          imageIdx={imageIdx}
+          setImageIdx={setImageIdx}
+        />
+      )}
+    </div>
+  );
+}
+
+function Experiment({
+  imageIdx,
+  userID,
+  setImageIdx,
+}: {
+  userID: number;
+  imageIdx: number;
+  setImageIdx: (idx: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-center h-screen bg-[rgb(217,217,217)]">
+      {imageIdx % 3 !== 0 ? (
         <img
           className="h-screen aspect-square"
           src={`./experiment/${imageIdx}.jpeg`}
           alt="experiment"
         />
       ) : (
-        <SAM />
+        <>
+          <SAM
+            userID={userID}
+            paintingID={Math.floor(imageIdx / 3)}
+            setImageIdx={setImageIdx}
+          />
+        </>
       )}
     </div>
   );
 }
+interface SAMProps {
+  userID: number;
+  paintingID: number;
+  setImageIdx?: (idx: number) => void;
+}
 
-function SAM() {
+function SAM({ userID, paintingID, setImageIdx }: SAMProps) {
+  const [selectedRating, setSelectedRating] = useState<number | null>(null);
+
+  function insertData() {
+    setImageIdx && setImageIdx((prevIdx: number) => prevIdx + 1);
+    console.table({ userID, paintingID, selectedRating });
+  }
+
   const sam_images = [
     "./sam/1.svg",
     "./sam/2.svg",
@@ -71,29 +117,33 @@ function SAM() {
       </div>
       <div className="flex items-center justify-center">
         {sam_images.map((image, idx) => (
-          <img key={idx} className="w-40" src={image} alt="sam" />
+          <img key={idx} className="w-32" src={image} alt="sam" />
         ))}
       </div>
       <div className="pb-16">
         <div className="flex items-center justify-center">
           {Array.from({ length: 9 }, (_, i) => (
             <input
+              onChange={(e) => setSelectedRating(parseInt(e.target.value))}
               key={i}
               type="radio"
               name="sam"
               value={i + 1}
-              className="w-40 h-8"
+              className="w-32 h-8"
             />
           ))}
         </div>
         <div className="flex text-2xl font-normal items-center justify-between pt-8">
           <span>Very unpleasant</span>
 
-          <span>Very plesant</span>
+          <span>Very pleasant</span>
         </div>
       </div>
       <div className="flex items-center justify-center">
-        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        <button
+          onClick={insertData}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
           Submit
         </button>
       </div>
