@@ -6,9 +6,11 @@ import pandas as pd
 import os
 
 def analyze_ecg(filename,folder_path='data_analysis/data/'):
-    userId = filename.split('_')[0]
-    paintingId = filename.split('_')[1]
-    mode = filename.split('_')[2]
+    print(f'Analyzing {filename}')
+    title_without_ext = filename.split('.')[0]
+    userID, paintingID, mode = title_without_ext.split('_')
+    mode = 'Baseline' if mode == 'B' else 'Stress'
+
     # Read the data from the file
     data = pd.read_table(f'{folder_path}/{filename}',
                          skiprows=3,
@@ -30,7 +32,7 @@ def analyze_ecg(filename,folder_path='data_analysis/data/'):
     indicators_td = compute_indicators(td_indicators, ibi)
     indicators_fd = compute_indicators(fd_indicators, ibi.p.resample(4))
 
-    all_indicators = {'userId': userId, 'paintingId': paintingId, 'mode': mode,**indicators_td, **indicators_fd}
+    all_indicators = {'userId': userID, 'paintingId': paintingID, 'mode': mode,**indicators_td, **indicators_fd}
     return all_indicators
 
 def main():
@@ -38,7 +40,8 @@ def main():
     files = os.listdir('data_analysis/data')
     all_indicators = []
     for file in files:
-        all_indicators.append(analyze_ecg(file))
+        if file.endswith('.txt'):
+            all_indicators.append(analyze_ecg(file))
     df = pd.DataFrame(all_indicators)
     df.to_csv('data_analysis/analysis.csv', index=False)
 
