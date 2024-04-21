@@ -4,6 +4,7 @@ import pyphysio.specialized.heart as heart_tools
 from pyphysio.indicators import compute_indicators
 import pandas as pd
 import os
+import uuid
 
 def analyze_ecg(filename,folder_path='data_analysis/data/'):
     print(f'Analyzing {filename}')
@@ -32,7 +33,7 @@ def analyze_ecg(filename,folder_path='data_analysis/data/'):
     indicators_td = compute_indicators(td_indicators, ibi)
     indicators_fd = compute_indicators(fd_indicators, ibi.p.resample(4))
 
-    all_indicators = {'userId': userID, 'paintingId': paintingID, 'mode': mode,**indicators_td, **indicators_fd}
+    all_indicators = {'Id':uuid.uuid4(), 'userId': userID, 'paintingId': paintingID, 'mode': mode,**indicators_td, **indicators_fd}
     return all_indicators
 
 def main():

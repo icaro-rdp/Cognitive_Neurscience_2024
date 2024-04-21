@@ -4,6 +4,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.model_selection import cross_val_score
+import sys
+import os
+
+# Set the working directory
+os.chdir('data_analysis')
 
 # Load HRV data (replace 'hrv.csv' with your actual file path)
 hrv_data = pd.read_csv('hrv.csv')
@@ -24,7 +29,10 @@ scaler = StandardScaler()
 
 
 # Get subject IDs as groups for LOSO
-groups = merged_data['userId'] 
+groups = merged_data['Id'] 
+print(groups)
+sys.exit()
+
 
 # Leave-One-Subject-Out cross-validation
 logo = LeaveOneGroupOut()
