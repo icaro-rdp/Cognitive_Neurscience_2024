@@ -43,7 +43,7 @@ def main():
         if file.endswith('.txt'):
             all_indicators.append(analyze_ecg(file))
     df = pd.DataFrame(all_indicators)
-    df.to_csv('data_analysis/analysis.csv', index=False)
+    df.to_csv('data_analysis/hrv.csv', index=False)
 
 if __name__ == '__main__':
     main()
