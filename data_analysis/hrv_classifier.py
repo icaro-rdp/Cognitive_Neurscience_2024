@@ -18,13 +18,10 @@ merged_data = hrv_data.merge(ratings_data, on=['userId', 'paintingId'])
 X = merged_data.drop(['userId', 'paintingId', 'mode', 'rating'], axis=1)
 y = merged_data['rating']
 
-# Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Standardize features
 scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+
 
 # Get subject IDs as groups for LOSO
 groups = merged_data['userId'] 
