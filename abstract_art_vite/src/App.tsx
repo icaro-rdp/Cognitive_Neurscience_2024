@@ -100,9 +100,13 @@ interface SAMProps {
 function SAM({ userID, paintingID, setState }: SAMProps) {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
 
-  function insertData() {
+  async function insertData() {
     setState?.("looking");
-    console.table({ userID, paintingID, selectedRating });
+
+    const { error } = await supabase
+      .from("SAM")
+      .insert({ userID, paintingID, rating: selectedRating });
+    if (error) throw error;
   }
 
   const sam_images = [
