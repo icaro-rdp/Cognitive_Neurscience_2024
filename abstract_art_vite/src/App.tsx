@@ -14,6 +14,7 @@ function App() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (state !== "looking") return;
       if (event.key === "ArrowRight") {
         setImageIdx(imageIdx + 1);
         if (imageIdx % 2 === 0) {
@@ -28,7 +29,7 @@ function App() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [imageIdx]);
+  }, [imageIdx, state]);
 
   return (
     <div className="flex items-center justify-center h-screen bg-[rgb(217,217,217)]">
