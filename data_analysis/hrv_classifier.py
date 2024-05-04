@@ -6,28 +6,22 @@ from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.model_selection import cross_val_score
 import numpy as np
 import os
-
+import sys
 # Set the working directory
 os.chdir('data_analysis')
 
 # Load HRV data (replace 'hrv.csv' with your actual file path)
-hrv_data = pd.read_csv('hrv.csv')
+hrv_data = pd.read_csv('hrv_baseline_balanced.csv')
 
 # Load painting ratings data (replace 'ratings.csv' with your actual file path)
 ratings_data = pd.read_csv('ratings.csv')
 
-# Merge datasets based on userId and paintingId (assuming they are the common columns)
-merged_data = hrv_data.merge(ratings_data, on=['userId', 'paintingId'])
+merged_data = hrv_data.merge(ratings_data, on=['Id', 'userId', 'paintingId'], how='inner')
+
 
 # Or Numpy arrays?
-X = merged_data.drop(['userId', 'paintingId', 'mode', 'rating'], axis=1)
+X = merged_data.drop(['Id','userId', 'paintingId', 'mode', 'rating'], axis=1)
 y = merged_data['rating']
-
-# # Define features and target variable
-# X = merged_data.drop(['userId', 'paintingId', 'mode', 'rating'], axis=1).values
-# y = merged_data['rating'].values
-
-
 
 # Standardize features
 scaler = StandardScaler()
@@ -40,7 +34,7 @@ groups = merged_data['Id']
 logo = LeaveOneGroupOut()
 
 # Initialize SVM classifier
-svm_model = SVC(kernel='linear', penalty='l2', C=1.0)  
+svm_model = SVC(kernel='linear', C=1.0)  
 
 # Perform Leave-One-Subject-Out cross-validation
 for train_index, test_index in logo.split(X, y, groups):
@@ -52,15 +46,17 @@ for train_index, test_index in logo.split(X, y, groups):
         
     svm_model.fit(X_train_scaled, y_train)
     accuracy = svm_model.score(X_test_scaled, y_test)
-    print(f'L2 Accuracy for subject {groups[test_index].values[0]}: {accuracy}')
+    print(f'Accuracy for subject {groups[test_index].values[0]}: {accuracy}')
 
 # Evaluate model performance using LOSO and regularization
 
 scores = cross_val_score(svm_model, X, y, groups=groups, cv=logo)
-print(f'Mean L2 Accuracy: {scores.mean()}')
+print(f'Mean Accuracy: {scores.mean()}')
 
 # Train final model on full dataset
 svm_model.fit(X, y)
+
+
 
 
 

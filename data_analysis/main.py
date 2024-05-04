@@ -41,6 +41,7 @@ def analyze_ecg(filename,folder_path='data_analysis/segmented/'):
     return all_indicators
 
 def segment_txt_file(filename,new_name,t_start,t_end, folder_path='data_analysis/raw_data/',output_folder='data_analysis/segmented', ):
+
     sample_rate = 1000
     # Read the data from the file
     data = pd.read_table(f'{folder_path}/{filename}',
@@ -48,7 +49,29 @@ def segment_txt_file(filename,new_name,t_start,t_end, folder_path='data_analysis
                          sep='\t')
     trimmed_data = data.iloc[t_start*sample_rate:t_end*sample_rate]
     trimmed_data.to_csv(f'{output_folder}/{new_name}.txt', sep='\t', index=False)
-   
+
+def subtract_baseline_from_stress(df):
+    #  for each row with column mode == 'Stress', subtract the corresponding row with column mode == 'Baseline' from it, to get the right baseline row use userId 
+
+    # get all the unique userIds
+    user_ids = df['userId'].unique()
+    for user_id in user_ids:
+        # get all the rows with the same userId
+        user_rows = df[df['userId'] == user_id]
+        baseline_row = user_rows[user_rows['mode'] == 'Baseline']
+        stress_rows = user_rows[user_rows['mode'] == 'Stress']
+        # subtract the baseline row from the stress rows
+        for index, row in stress_rows.iterrows():
+            for column in row.index:
+                if column not in ['userId', 'paintingId', 'mode', 'Id']:
+                    stress_rows.at[index, column] = row[column] - baseline_row[column].values[0]
+        df.update(stress_rows)
+        df.drop(baseline_row.index, inplace=True)
+
+    return df
+
+        
+
 def main():
     # Get all the files in the data folder
     files = os.listdir('data_analysis/segmented')
@@ -58,8 +81,11 @@ def main():
         if file.endswith('.txt'):
             all_indicators.append(analyze_ecg(file))
     df = pd.DataFrame(all_indicators)
+    new_df = subtract_baseline_from_stress(df)
     sorted_df = df.sort_values(by=['userId', 'paintingId', 'mode'])
+    new_sorted_df = new_df.sort_values(by=['userId', 'paintingId', 'mode'])
     sorted_df.to_csv('data_analysis/hrv.csv', index=False)
+    new_sorted_df.to_csv('data_analysis/hrv_baseline_balanced.csv', index=False)
 
 if __name__ == '__main__':
     main()
