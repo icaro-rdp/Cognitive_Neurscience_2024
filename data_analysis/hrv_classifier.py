@@ -51,30 +51,20 @@ loo = LeaveOneOut()
 
 # Initialize models
 svm_model = SVC(kernel='poly', C=1.0)  
-
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
 svm_scores = []
+rf_scores = []
 for i, (train_index, test_index) in enumerate(loo.split(X)):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
-    # Train models
     svm_model.fit(X_train, y_train)
     svm_pred = svm_model.predict(X_test)
     svm_scores.append(accuracy_score(y_test, svm_pred))
 
-
-print(f'SVM Average accuracy: {np.mean(svm_scores)}')
-
-# Random Forest
-rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
-rf_scores = []
-
-for i, (train_index, test_index) in enumerate(loo.split(X)):
-    X_train, X_test = X[train_index], X[test_index]
-    y_train, y_test = y[train_index], y[test_index]
-    # Train models
     rf_model.fit(X_train, y_train)
     rf_pred = rf_model.predict(X_test)
     rf_scores.append(accuracy_score(y_test, rf_pred))
 
 
+print(f'SVM Average accuracy: {np.mean(svm_scores)}')
 print(f'Random forest Average accuracy: {np.mean(rf_scores)}')
